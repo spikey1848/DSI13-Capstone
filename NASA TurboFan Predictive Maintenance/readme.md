@@ -135,8 +135,8 @@ The Random Forest Regressor (RFR) performed the best overall, followed by XGBoos
 |Model|R2 Score|RSME Score |Aggregate Score|
 |:---|---:|---:|---:|
 |Random Forest Regression|0.636|25.076|1928.376|
+|LSTM|0.486|29.781|7314.953|
 |XGBoost|0.525|28.638|10713.416|
-|LSTM|0.37|32.797|10877.948|
 |Lasso (baseline)|0.443|31.006|21193.826|
 
 #### Classification Model
@@ -145,7 +145,7 @@ LSTM classification model produced the best prediction with ROC AUC score of 0.9
 
 |Model|Precision|Recall|F-Score|ROC AUC Score|Expected Cost Savings|
 |:---|---:|---:|---:|---:|:---:|
-|LSTM|0.6944|1.0|0.8197|0.9267|3.6M|
+|LSTM|0.6944|1.0|0.8197|0.9267|3.9M|
 |XGB|0.625|1.0|0.7692|0.90|3.5M|
 |RF|0.4902|1.0|0.6579|0.8267|2.4M|
 
@@ -170,11 +170,16 @@ FN - wrongly predicted engine will not fail
 
 True Positive (TP) has cost avoidance of $200,000 for 100 engines : engines that need maintenance and correctly selected by the model ie prevent breakdown before scheduled maintenance.
 
-True Negative (TN) does not incurr any additional  expenditure nor achieve any savings or cost avoidance : engines that are OK and not selected by the model.
+True Negative (TN) does not incur any additional  expenditure nor achieve any savings or cost avoidance : engines that are OK and not selected by the model.
 
 False Positive (FP) incurs a cost of $100,000 for 100 engines : engines that are OK but selected by the model ie early scheduled maintenance, which is not optimised and means more maintenance in the long run.
 
 False Negative (FN) incurs a cost of $100,000 for 100 engines : engines that need maintenance but not selected by the model ie engine will break down before scheduled maintenance, incurring additional cost and downtime.
+
+| |Predicted No Failure|Predicted Failure|
+|:---:|:---:|:---:|
+|Actual No Failure|$0 (TN)|-$100k (FP)|
+|Actual Failure|-$100k (FN)|+200k (TP)|
 
 The Expected Value (EV) is used to translate the cost savings of the classification models. Although the EV is a simplified example and the precision score is modest, there is still significant cost savings achieved to demonstrate the usefulness of the models.
 
@@ -194,7 +199,7 @@ The models can potentially be used as part of the overall maintenance system in 
 
 ### Conclusion
 
-The combination of regression and classification prediction models, combined with a cost assessment model have demonstrated the benefits of pursuing pro-active maintenance concept, particularly for high value equipment such as turbofan engines.
+The combination of regression and classification prediction models, together with a cost assessment model have demonstrated the benefits of pursuing pro-active maintenance concept, particularly for high value equipment such as turbofan engines.
 
 ### Future Work
 

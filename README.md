@@ -1,23 +1,33 @@
-# Condition Based Maintenance
+# <div align="center"> GA DSI13 Capstone
+
+# <div align="center"> Predicting the Useful Remaining Life of Turbofan Engines
 
 ## Problem Statement
 
 Prognostics is an engineering discipline focused on predicting the time at which a system or a component will no longer perform its intended function. The predicted time then becomes the remaining useful life (RUL), which is an important concept in decision making for contingency mitigation. Prognostics predicts the future performance of a component by assessing the extent of deviation or degradation of a system from its expected normal operating conditions.
 
-Traditional maintenance concept is time/schedule based and is a reactive type of maintenance.  On the other hand, condition based maintenance is prognostics-based and a pro-active type of maintenance that relies on early detection and prediction of potential failure of the equipment or component to pre-empt sudden breakdowns and prolonged downtime.  Predicting early failures in a maintenance regime will mitigate prolonged downtime and reduce maintenance cost while keeping equipment operationally ready and available.
+Traditional maintenance concept is typically time/schedule based and is a reactive type of maintenance.  On the other hand, condition based maintenance is prognostics-based and a pro-active type of maintenance that relies on early detection and prediction of potential failure of the equipment or component to pre-empt sudden breakdowns and prolonged downtime, resulting in reduced maintenance cost while keeping equipment operationally ready and available.
 
-Military equipment is often operated in harsh environment and are required to be readily available and operational 24/7.  Having the capability to predict potential equipment failures before they actually occur will enable planners to pro-actively maintain the equipment to be ready 24/7. There is considerable cost savings (for example by avoiding unscheduled maintenance and by increasing equipment usage) and operational safety improvements.
+The aim this project is to build machine learning models capable of forecasting the remaining useful life of turbofan engines (regression model), as well as predicting whether they will fail or not given the operating conditions data (classification model). The output of the models will be computed with a set of maintenance costs to demonstrate the benefits of such pro-active maintenance concept.
 
-The aim this project is to build a model capable of forecasting the remaining useful life of turbofan engines. For an engine degradation scenario an early prediction is preferred over late predictions. Therefore, the scoring algorithm for this project could be asymmetric around the true time of failure such that late predictions will be more heavily penalized than early predictions. The baseline aggregate score will be based on the Linear Regression model.
+## Contents
 
+- [Data Source](#Data-Source)
+- [Scoring Metrics](#Scoring-Metrics)
+- [Exploratory Data Analysis](#Exploratory-Data-Analysis)
+- [Preprocessing and Modelling](#Preprocessing-and-Modelling)
+- [Analysis](#Analysis)
+- [Recommendations and Conclusion](#Recommendations-and-Conclusion)
+- [References](#References)
 
 ## Data Source
 
-The data source is obtained from NASA. This prognostics dataset is on sensor measurements of turbofan engines (a total of 708 engines).  The dataset is modelled after real life engine data and was presented in a technical paper reference “Damage Propagation Modeling for Aircraft Engine Run-to-Failure Simulation”.
+The datasets are in txt format and are obtained from NASA :  
+https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#turbofan
 
-data source : https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#turbofan
+There are 4 sets each of training and testing data and true (ground-truth) remaining useful life values for model evaluation available. For this project **Dataset 1** will be used. It contains 100 engines' data.
 
-## Data Description
+### Data Description
 
 The datasets consist of multiple multivariate time series. Each dataset is further divided into training and test subsets. Each time series is from a different engine i.e., the data can be considered to be from a fleet of engines of the same type.
 
@@ -25,10 +35,6 @@ Each engine starts with different degrees of initial wear and manufacturing vari
 
 The engine is operating normally at the start of each time series, and starts to degrade at some point during the series. In the training set, the degradation grows in magnitude until a predefined threshold is reached beyond which it is not preferable to operate the engine. In the test set, the time series ends some time prior to complete degradation.
 
-
-There are 4 sets each of training and testing data and true (ground-truth) remaining useful life values for model evaluation. Dataset 1 contains 100 engines' data, dataset 2 contains 260 engines' data, dataset 3 contains 100 engines' data and dataset 4 contains 249 engines' data.  The engines can be considered to be from a fleet of the same type.
-
-The engine is operating normally at the start of each time series, and develops a fault at some point during the series. In the training set, the fault grows in magnitude until system failure. In the test set, the time series ends some time prior to system failure.
 
 ### Datasets
 
@@ -48,17 +54,8 @@ The data are provided as text files with 26 columns of numbers, separated by spa
 |Dataset|No. of rows|No. of Engines|
 |---|---|---|
 |train_FD001|20631|100|
-|train_FD002|53759|260|
-|train_FD003|24720|100|
-|train_FD004|61249|249|
 |test_FD001|13096|100|
-|test_FD002|33991|259|
-|test_FD003|16596|100|
-|test_FD004|41214|248|
 |RUL_FD001|100|100|
-|RUL_FD002|259|259|
-|RUL_FD003|100|100|
-|RUL_FD004|248|248|
 
 ### Data Dictionary
 
@@ -92,88 +89,127 @@ The data are provided as text files with 26 columns of numbers, separated by spa
 |26|sesnor_21|	 LPT coolant bleed|	lbm/s	|float64|
 |27|RUL	|Remaining useful life|	-	|int64|
 
+## Scoring Metrics
 
-## Potential Challenges
+2 main scoring metrics are used : Root Square Mean Error (RSME) and the NASA aggregate score.
 
-From my research, a number of papers have been published on these datasets and the common finding is that these datasets represent a multi-dimensional response from a complex non-linear system. There is also a lot of noise in the data and the effects of faults are masked by the 3 operating conditions, making analysis not so straightforward.  
+The R2 score is also calculated to provide an indication on the goodness of the fitting but is not the main metrics in this project.
 
-The datasets are divided into 4 subsets and can possibly be combined together since the engines are not linked in the 4 sub-datasets. The strategy is to develop a model and test it against the 4 sub  datasets first before testing it on the combined dataset of 700+ engines that has various combinations of conditions and fault modes.  Various models can be explored and scored progressively, coupled with fine tuning of parameters and feature engineering.  This way, it may be easier to understand the interaction and importance of the various features in a smaller scale before going full swing on model selection.
+The RMSE gives equal penalty to early and late predictions.  
 
-The other alternative approach is to model on the combined data and derive the best model. This could potentially take up more time and iterations because of the complexity of the combinations of conditions and fault modes.
+The NASA aggregate score is a weighted sum of RUL errors. The scoring function is an asymmetric function that penalizes late predictions more than the early predictions as late predictions could cause serious system failures in real-life applications as the maintenance procedure will be scheduled too late.  The scoring function is expressed by the equation below.  UUT refers to the engine in this project.
 
-## Project Implementation
+As a reference, the NASA top 20 aggregate scores range from 436.84 to 2430.42 for a unseen test set of 435 engines. Models with aggregate scores above 20000 are considered weak predictors (reference 1).
 
-My broad plan for project implementation :
+Nevertheless, the main objective is to achieve the smallest value possible for both the NASA aggregate score and RMSE.
 
-1. Understand the dataset [*completed*]
-
-2. Decide what to solve - find the RUL (regression), or determine whether engine fails or not (classification). Finding RUL is the preferred option for practical application[*for now regression, if there is time i will try classification*]
-
-3. Data preparation - sensor selection, feature engineering, noise filtering(?)[*completed preparing train,test,validation, scaling*]
-
-4. Model creation and prediction - LR, GLM, SMV, NN? [*Ran the baseline LR model*]
-
-5. Performance measurement - what metrics to use - R2, NASA's metrics ? Comparison against NASA benchmark and other technical publications.[*will use NASA benchmark. Created function to compute scoring metrics and computed the baseline LR metrics with it*]
-
-6. Analysis
-
-7. Conclusion & Recommendations
+<img src="images/scoring%20metrics.png" width="350"/>
 
 
-### Data inspection and cleaning (Completed)
+## Exploratory Data Analysis
 
-The data is relatively clean with only two columns of 100% missing values. The 4 sub-datasets are combined into single dataset, with the engines renumbered in running order as each sub-dataset engine number starts with 1.
+### Analysis from Heatmaps and Distribution Plots
 
-### Exploratory Data Analaysis (Completed)
+From  distribution plots and heatmaps, it was observed that :
 
-#### Calculate RUL
-The  datasets do not provide the remaining useful life RUL (feature/target y).  This has to be calculated from the dataset.
+1. some features do not have correlation at all.  
 
-#### Heatmap & Distribution plots analysis
+2. some features show a negative trend while some show a positive trend, with the tail ends moving either upwards or downwards.
 
-Analysis from heatmaps and distribution plots was done.
-From the single engine and train datasets heatmaps, it was observed that there are some features that do not have correlation at all.
-The op_settings in the train dataset do not have significant correlation with the sensors.
+3. some features are constant and do not change with cycle time.
 
-However for the combined dataset, there seems to be a large number of features that are highly correlated. The ops-settings are also negatively correlated to the sensors, which is not the case for a single engine EDA.  The distribution plots for the combined dataset also showed skewed and bimodal distributions. This could be due to some of the sub-datasets having more number of fault modes, allowing more possible state of failure and a possible continuation of the data when expecting failure.
+These sensors were considered for removal during modelling.
 
-#### Scaling/Normalizing Features
+## Preprocessing and Modelling
 
-From the initial EDA, it can be seen that the sensor data ranges from min 0.02 to max 8243. There are also negative values for the op_settings data.  The op_setting and sensors features are thus normalized using StandardScaler.  The engine, cycle and computed RUL are not scaled.
+From the EDA, it can be seen that the sensor data varies over a wide range from min 0.02 to max 8243.  The dataset was thus normalized using StandardScaler before commencement of modelling.
 
-#### Define Function to Calculate Aggregate Score for Model
+Regresssion and classification models were built to predict the remaining useful life and to predict whether the engine will fail or not.  The models' performances are summarised below :
 
-NASA provided the scoring metrics formula, in which the final score is a weighted sum of RUL errors. The scoring function is an asymmetric function that penalizes late predictions more than the early predictions.  The scoring metrics has been created from the formula as a function.
+### Model Performance
 
-## Create Baseline Regresson Model on Dataset 1 (Completed)
+#### Regression Model
 
-As this is a regression problem, and there is no naive base score available, a Linear Regression model is constructed to baseline the score, without removing any features or conducting feature engineering.
+The Random Forest Regressor (RFR) performed the best overall, followed by XGBoost and LSTM. The models performed modestly as their scores are below 20,000 of NASA aggregate scores. Scores of 20,000 or greater are weak predictors.
 
-Linear, Ridge and Lasso regressions were used and compared. They were tested against the 4 sets of test datasets and Linear Regression was found to have the best aggregate scores among the 3 models :
-can can u
-|Dataset|No. of Engines|No. of Faults and Conditions|Aggregate Score|
-|---|---|---|---|
-|test_FD001|100|1 Fault, 1 Condition|2016.90|
-|test_FD002|259|1 Fault, 6 Conditions|370047.87|
-|test_FD003|100|2 Fault, 1 Condition|92182.30|
-|test_FD004|248|2 Fault, 6 Condition|309479.21|
+|Model|R2 Score|RSME Score |Aggregate Score|
+|:---|---:|---:|---:|
+|Random Forest Regression|0.636|25.076|1928.376|
+|XGBoost|0.525|28.638|10713.416|
+|LSTM|0.37|32.797|10877.948|
+|Lasso (baseline)|0.443|31.006|21193.826|
 
-The poor scores for the 2nd to 4th test datasets are expected, as the model is only trained on the 1st dataset which has only 1 fault and 1 condition.
+#### Classification Model
 
-As a reference, the NASA top 20 aggregate scores range from 436.84 to 2430.42 for a unseen test set of 435 engines.
+LSTM classification model produced the best prediction with ROC AUC score of 0.927, recall of 1.0 and precision of 0.69. The score seems modest, but taking into consideration that the test data has only 100 units of engines, an incremental/decremental prediction of 1 unit of false positive (FP) (ie predicting engine failure when there is no actual failure) will result in a change of 2.8% in the precision score. In other words, to achieve a 0.9 precision score, the FP will have to be reduced to 3 units and the TP increase correspondingly by 8 units.
 
-## Review / Seek Alternative Models
-
-Tasks for the next 1 week :
-
-1. Some possible models to work on include : SVM, Random Forest
-
-2. To work on feature selection / extraction, feature engineering
-
-3. If there is time, to look at Health Index (HI) methodology to predict RUL.  This methodology assumes that the HI of a system (engine in our case) degrades linearly over time. The RUL is predicted in 2 steps : 1) from input signals (sensors) to HI; and then 2) mapping HI to RUL.
-
-## Feature engineering
-
-## Benchmarking
+|Model|Precision|Recall|F-Score|ROC AUC Score|Expected Cost Savings|
+|:---|---:|---:|---:|---:|:---:|
+|LSTM|0.6944|1.0|0.8197|0.9267|3.6M|
+|XGB|0.625|1.0|0.7692|0.90|3.5M|
+|RF|0.4902|1.0|0.6579|0.8267|2.4M|
 
 ## Analysis
+
+The label ie target feature is not provided in training dataset, making the training dataset as unseen data. Although the true RUL (target feature) is provided for the test dataset, the shape[0] of the datasets do not match. The test dataset has to be transformed to match the true RUL dataset.
+
+As a result of the structure of the training and test datasets, some assumptions were made in order to derive the corresponding target feature ie RUL. Thus this could explain why the models' performances are modest with respect to the NASA and R2 scores, with the exception of random forest regression which performed well in the NASA score.
+
+### Expected Value Calculation for Classification Model
+
+Expected Value is a method to compare different classification models by constructing cost-benefit matrix in line with the confusion matrix, and then converting the model performance to a single monetary value by multiplying confusion matrix into the cost-benefit matrix (reference 2).
+
+For this project, the following assumptions are made in order to make some comparisons to the expected value calculations of the 3 classifiers.
+
+The normal budgeted expenditure is catered for preventive maintenance that will be carried out on periodic schedule which will prevent breakdown of the engines. Additional cost will be incurred if the engine breaks down before scheduled maintenance is carried out. This will be the True Negative (TN).  The confusion matrix is defined as follows :
+
+TP - correctly predict engine will fail
+TN - correctly predict engine will not fail
+FP - wrongly predicted engine will fail
+FN - wrongly predicted engine will not fail
+
+True Positive (TP) has cost avoidance of $200,000 for 100 engines : engines that need maintenance and correctly selected by the model ie prevent breakdown before scheduled maintenance.
+
+True Negative (TN) does not incurr any additional  expenditure nor achieve any savings or cost avoidance : engines that are OK and not selected by the model.
+
+False Positive (FP) incurs a cost of $100,000 for 100 engines : engines that are OK but selected by the model ie early scheduled maintenance, which is not optimised and means more maintenance in the long run.
+
+False Negative (FN) incurs a cost of $100,000 for 100 engines : engines that need maintenance but not selected by the model ie engine will break down before scheduled maintenance, incurring additional cost and downtime.
+
+The Expected Value (EV) is used to translate the cost savings of the classification models. Although the EV is a simplified example and the precision score is modest, there is still significant cost savings achieved to demonstrate the usefulness of the models.
+
+|Model|Precision|Recall|F-Score|ROC AUC Score|Expected Cost Savings|
+|:---|---:|---:|---:|---:|:---:|
+|LSTM|0.6944|1.0|0.8197|0.9267|3.6M|
+|XGB|0.625|1.0|0.7692|0.90|3.5M|
+|RF|0.4902|1.0|0.6579|0.8267|2.4M|
+
+## Recommendations and Conclusion
+
+### Possible Application
+
+The models can potentially be used as part of the overall maintenance system in the data analysis and decision making module as illustrated in the diagram below.
+
+<img src="images/maint concept.png" width="500"/>
+
+### Conclusion
+
+The combination of regression and classification prediction models, combined with a cost assessment model have demonstrated the benefits of pursuing pro-active maintenance concept, particularly for high value equipment such as turbofan engines.
+
+### Future Work
+
+The models can be further improved to provide greater prediction accuracy. Some possible implementations that can be considered in future improvements include kalman filtering to filter signal noise, and using functional mapping between Health Index (HI) and the RUL where the RUL is predicted in 2 steps : 1) from input signals (sensors) to the HI; and then 2) mapping the HI to RUL (see diagram below).
+
+<img src="images/HI-RUL.png" width="400"/>
+
+## References
+
+1.  Data analysis and processing techniques for remaining useful life
+estimations, John Scott Bucknam, Rowan University
+
+2. Data Science for Business by Foster Provost and Tom Fawcett
+
+3. Review and Analysis of Algorithmic Approaches Developed for Prognostics on CMAPSS Dataset, Emmanuel Ramasso and Abhinav Saxena
+
+4. Remaining useful life predictions for turbofan engine degradation using semi-supervised deep architecture,
+André Listou Ellefsen, Emil Bjørlykhaug, Vilmar Æsøy,  Sergey Ushakov and Houxiang Zhang

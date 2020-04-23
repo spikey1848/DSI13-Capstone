@@ -168,7 +168,7 @@ Thus this could explain why the models' performances are modest with respect to 
 
 ### Expected Value Calculation for Classification Model
 
-Expected Value is a method to compare different classification models by constructing cost-benefit matrix in line with the confusion matrix, and then converting the model performance to a single monetary value by multiplying confusion matrix into the cost-benefit matrix (reference 2).
+The Expected Value framework is a method to compare different classification models by constructing cost-benefit matrix in line with the confusion matrix, and then converting the model performance to a single monetary value by multiplying confusion matrix into the cost-benefit matrix (reference 2).
 
 For this project, the following assumptions are made in order to make some comparisons to the expected value calculations of the 3 classifiers.
 

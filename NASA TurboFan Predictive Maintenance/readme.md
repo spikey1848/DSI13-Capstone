@@ -25,7 +25,7 @@ The aim this project is to build machine learning models capable of forecasting 
 The datasets are in txt format and are obtained from NASA :  
 https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#turbofan
 
-There are 4 sets each of training and testing data and true (ground-truth) remaining useful life values for model evaluation available. For this project **Dataset 1** will be used. It contains 100 engines' data.
+There are 4 sets each of training and testing data and true (ground-truth) remaining useful life values for model evaluation available. For this project **Dataset 1** will be used. It contains sensor data of 100 engines.
 
 ### Data Description
 
@@ -108,6 +108,12 @@ Nevertheless, the main objective is to achieve the smallest value possible for b
 
 ## Exploratory Data Analysis
 
+The training dataset does not have a y label whereas the test dataset comes with a separate y label that has to be matched due to different shapes of the datasets (test is [13096, 28] while y label is [100,1]). Thus the training data is unlabelled while the test data is partially labelled.
+
+To determine the y label for the training dataset, it is assumed that the last cycle of each engine is the failure cycle i.e. last cycle RUL = 0
+
+<img src="images/RUL derivation.png" width="600"/>
+
 ### Analysis from Heatmaps and Distribution Plots
 
 From  distribution plots and heatmaps, it was observed that :
@@ -153,7 +159,9 @@ LSTM classification model produced the best prediction with ROC AUC score of 0.9
 
 The label ie target feature is not provided in training dataset, making the training dataset as unseen data. Although the true RUL (target feature) is provided for the test dataset, the shape[0] of the datasets do not match. The test dataset has to be transformed to match the true RUL dataset.
 
-As a result of the structure of the training and test datasets, some assumptions were made in order to derive the corresponding target feature ie RUL. Thus this could explain why the models' performances are modest with respect to the NASA and R2 scores, with the exception of random forest regression which performed well in the NASA score.
+As a result of the structure of the training and test datasets, some assumptions about the cycle were made in order to derive the corresponding target feature ie RUL. These assumptions are : 1) the RUL is derived by taking the difference of the maximum cycle and the last cycle, and 2) classification of the engine's failure (ie y label is 1) is within 30 cycles of the remaining life.
+
+Thus this could explain why the models' performances are modest with respect to the NASA and R2 scores, with the exception of random forest regression which performed well in the NASA score.
 
 ### Expected Value Calculation for Classification Model
 
@@ -193,7 +201,7 @@ The Expected Value (EV) is used to translate the cost savings of the classificat
 
 ### Possible Application
 
-The models can potentially be used as part of the overall maintenance system in the data analysis and decision making module as illustrated in the diagram below.
+The models can potentially be used as part of the overall maintenance system in the data analysis and decision making module for smarter maintenance and operations as illustrated in the diagram below.  
 
 <img src="images/maint concept.png" width="500"/>
 
@@ -218,3 +226,5 @@ estimations, John Scott Bucknam, Rowan University
 
 4. Remaining useful life predictions for turbofan engine degradation using semi-supervised deep architecture,
 André Listou Ellefsen, Emil Bjørlykhaug, Vilmar Æsøy,  Sergey Ushakov and Houxiang Zhang
+
+5. Coding ideas : https://soham97.github.io/Siemens-MakeItReal-hackathon/

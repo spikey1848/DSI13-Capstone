@@ -6,7 +6,7 @@
 
 Prognostics is an engineering discipline focused on predicting the time at which a system or a component will no longer perform its intended function. The predicted time then becomes the remaining useful life (RUL), which is an important concept in decision making for contingency mitigation. Prognostics predicts the future performance of a component by assessing the extent of deviation or degradation of a system from its expected normal operating conditions.
 
-Traditional maintenance concept is typically time/schedule based and is a reactive type of maintenance.  On the other hand, condition based maintenance is prognostics-based and a pro-active type of maintenance that relies on early detection and prediction of potential failure of the equipment or component to pre-empt sudden breakdowns and prolonged downtime, resulting in reduced maintenance cost while keeping equipment operationally ready and available.
+Traditional maintenance concept is typically time/schedule based and is a reactive type of maintenance in the event of premature equipment failure.  On the other hand, condition based maintenance is prognostics-based and a pro-active type of maintenance that relies on early detection and prediction of potential failure of the equipment or component to pre-empt sudden breakdowns and prolonged downtime, resulting in reduced maintenance cost while keeping equipment operationally ready and available.
 
 The aim this project is to build machine learning models capable of forecasting the remaining useful life of turbofan engines (regression model), as well as predicting whether they will fail or not given the operating conditions data (classification model). The output of the models will be computed with a set of maintenance costs to demonstrate the benefits of such pro-active maintenance concept.
 
@@ -114,6 +114,9 @@ To determine the y label for the training dataset, it is assumed that the last c
 
 <img src="images/RUL derivation.png" width="600"/>
 
+
+<br/>To determine the y label for the classification model, it is assumed that engines with RUL less than or equal  to 30 will have impending failure ie y label = 1.
+
 ### Analysis from Heatmaps and Distribution Plots
 
 From  distribution plots and heatmaps, it was observed that :
@@ -159,7 +162,7 @@ LSTM classification model produced the best prediction with ROC AUC score of 0.9
 
 The label ie target feature is not provided in training dataset, making the training dataset as unseen data. Although the true RUL (target feature) is provided for the test dataset, the shape[0] of the datasets do not match. The test dataset has to be transformed to match the true RUL dataset.
 
-As a result of the structure of the training and test datasets, some assumptions about the cycle were made in order to derive the corresponding target feature ie RUL. These assumptions are : 1) the RUL is derived by taking the difference of the maximum cycle and the last cycle, and 2) classification of the engine's failure (ie y label is 1) is within 30 cycles of the remaining life.
+As a result of the structure of the training and test datasets, some assumptions about the cycle were made based on the data description in order to derive the corresponding target feature ie RUL. These assumptions are : 1) the RUL is derived by taking the difference of the maximum cycle and the last cycle, and 2) classification of the engine's failure (ie y label is 1) is within 30 cycles of the remaining life.
 
 Thus this could explain why the models' performances are modest with respect to the NASA and R2 scores, with the exception of random forest regression which performed well in the NASA score.
 
@@ -169,12 +172,12 @@ Expected Value is a method to compare different classification models by constru
 
 For this project, the following assumptions are made in order to make some comparisons to the expected value calculations of the 3 classifiers.
 
-The normal budgeted expenditure is catered for preventive maintenance that will be carried out on periodic schedule which will prevent breakdown of the engines. Additional cost will be incurred if the engine breaks down before scheduled maintenance is carried out. This will be the True Negative (TN).  The confusion matrix is defined as follows :
+The normal budgeted expenditure is catered for preventive maintenance that will be carried out on periodic schedule over a timeframe (eg 4 preventive maintenance over 1 year) which will prevent breakdown of the engines. Additional cost will be incurred if the engine breaks down before scheduled maintenance is carried out. This will be the True Negative (TN).  The confusion matrix is defined as follows :
 
 TP - correctly predict engine will fail
 TN - correctly predict engine will not fail
-FP - wrongly predicted engine will fail
-FN - wrongly predicted engine will not fail
+FP - wrongly predict engine will fail
+FN - wrongly predict engine will not fail
 
 True Positive (TP) has cost avoidance of $200,000 for 100 engines : engines that need maintenance and correctly selected by the model ie prevent breakdown before scheduled maintenance.
 
@@ -193,7 +196,7 @@ The Expected Value (EV) is used to translate the cost savings of the classificat
 
 |Model|Precision|Recall|F-Score|ROC AUC Score|Expected Cost Savings|
 |:---|---:|---:|---:|---:|:---:|
-|LSTM|0.6944|1.0|0.8197|0.9267|3.6M|
+|LSTM|0.6944|1.0|0.8197|0.9267|3.9M|
 |XGB|0.625|1.0|0.7692|0.90|3.5M|
 |RF|0.4902|1.0|0.6579|0.8267|2.4M|
 

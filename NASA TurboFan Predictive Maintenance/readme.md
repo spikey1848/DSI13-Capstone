@@ -150,7 +150,7 @@ The Random Forest Regressor (RFR) performed the best overall, followed by XGBoos
 
 #### Classification Model
 
-LSTM classification model produced the best prediction with ROC AUC score of 0.927, recall of 1.0 and precision of 0.69. The score seems modest, but taking into consideration that the test data has only 100 units of engines, an incremental/decremental prediction of 1 unit of false positive (FP) (ie predicting engine failure when there is no actual failure) will result in a change of 2.8% in the precision score. In other words, to achieve a 0.9 precision score, the FP will have to be reduced to 3 units and the TP increase correspondingly by 8 units.
+LSTM classification model produced the best prediction with ROC AUC score of 0.927, recall of 1.0 and precision of 0.69. The score seems modest, but taking into consideration that the test data has only 100 units of engines, an incremental/decremental prediction of 1 unit of false positive (FP) (ie predicting engine failure when there is no actual failure) will result in a change of 2.8% in the precision score. In other words, to achieve above 0.9 precision score, the FP will have to be reduced to 3 units and the TP increase correspondingly by 8 units.
 
 |Model|Precision|Recall|F-Score|ROC AUC Score|Expected Cost Savings|
 |:---|---:|---:|---:|---:|:---:|
